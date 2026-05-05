@@ -1,0 +1,12 @@
+# Virtual environment files
+Include/
+Lib/
+Scripts/
+pyvenv.cfg
+
+# Other ignored files
+.env
+*.env
+keys.env
+*.csv
+__pycache__/
