@@ -275,15 +275,61 @@ def score_job(row):
     return score
 
 
+# ── ALREADY HUNTED ─────────────────────────────────────────────
+
+TRACKER_FILE = "tracker.xlsx"
+
+def load_already_applied():
+    """
+    Reads tracker.xlsx and returns a set of (company, title) pairs
+    that have already been applied to. These will be skipped.
+    """
+    if not os.path.exists(TRACKER_FILE):
+        return set()  # No tracker yet — fresh start
+
+    try:
+        df = pd.read_excel(TRACKER_FILE, sheet_name="All Jobs")
+        applied = df[df["applied"].astype(str).str.strip().str.lower() == "yes"]
+        hunted = set(
+            zip(
+                applied["company"].astype(str).str.strip().str.lower(),
+                applied["title"].astype(str).str.strip().str.lower()
+            )
+        )
+        print(f"   🏹 Already hunted: {len(hunted)} jobs will be skipped (from tracker.xlsx)")
+        return hunted
+    except Exception as e:
+        print(f"   ⚠️  Could not read tracker.xlsx: {e}")
+        return set()
+
+
 # ── SAVE + DEDUPLICATE ──────────────────────────────────────────
 
 def save_jobs(new_jobs, output_file):
     """
     Saves jobs to CSV.
-    If file already exists, adds new jobs and removes duplicates.
+    - Checks tracker.xlsx to skip already-applied jobs.
+    - If file already exists, adds new jobs and removes duplicates.
     """
     df_new = pd.DataFrame(new_jobs)
     df_new["match_score"] = df_new.apply(score_job, axis=1)
+
+    # ── Filter out already-applied jobs ──
+    already_hunted = load_already_applied()
+    if already_hunted:
+        before = len(df_new)
+        df_new = df_new[
+            ~df_new.apply(
+                lambda row: (
+                    str(row["company"]).strip().lower(),
+                    str(row["title"]).strip().lower()
+                ) in already_hunted,
+                axis=1
+            )
+        ]
+        skipped = before - len(df_new)
+        if skipped > 0:
+            print(f"   🚫 Skipped {skipped} already-applied job(s). Good, no repeat hunting!")
 
     if os.path.exists(output_file):
         df_existing = pd.read_csv(output_file)
