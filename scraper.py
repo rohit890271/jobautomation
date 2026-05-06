@@ -205,33 +205,39 @@ def scrape_naukri(role, location, num_pages=5):
             random_sleep(3, 6)  # Increased scroll delay
 
         soup = BeautifulSoup(driver.page_source, "html.parser")
-        job_cards = soup.find_all("article", class_="jobTuple")
 
-        if not job_cards:
-            job_cards = soup.find_all("div", class_="srp-jobtuple-wrapper")
+        # Updated selectors — Naukri uses srp-jobtuple-wrapper now
+        job_cards = soup.find_all("div", class_="srp-jobtuple-wrapper")
 
         print(f"   ✅ Found {len(job_cards)} jobs on page {page}")
 
         for card in job_cards:
             try:
-                title_tag = card.find("a", class_="title") or card.find("a", class_="jobTitle")
+                # Title is inside an <h2> then <a class="title">
+                title_tag = card.find("a", class_="title")
                 title = title_tag.get_text(strip=True) if title_tag else "N/A"
 
-                company_tag = card.find("a", class_="subTitle") or card.find("span", class_="companyInfo")
+                # Company is <a class="comp-name">
+                company_tag = card.find("a", class_="comp-name")
                 company = company_tag.get_text(strip=True) if company_tag else "N/A"
 
-                location_tag = card.find("li", class_="location") or card.find("span", class_="locWdth")
+                # Location is <span class="locWdth">
+                location_tag = card.find("span", class_="locWdth")
                 job_location = location_tag.get_text(strip=True) if location_tag else location
 
+                # Link from title tag href
                 link = title_tag["href"] if title_tag and title_tag.has_attr("href") else "N/A"
 
-                exp_tag = card.find("li", class_="experience")
+                # Experience is <span class="expwdth">
+                exp_tag = card.find("span", class_="expwdth")
                 experience = exp_tag.get_text(strip=True) if exp_tag else "N/A"
 
-                salary_tag = card.find("li", class_="salary")
+                # Salary — Naukri often hides it, try sal-wrap
+                salary_tag = card.find("span", class_="sal-wrap") or card.find("span", class_="salary")
                 salary = salary_tag.get_text(strip=True) if salary_tag else "N/A"
 
-                desc_tag = card.find("div", class_="job-description")
+                # Description snippet
+                desc_tag = card.find("span", class_="job-desc")
                 description = desc_tag.get_text(strip=True) if desc_tag else ""
 
                 if title != "N/A" and company != "N/A":
