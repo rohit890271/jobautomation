@@ -20,9 +20,9 @@ from dotenv import load_dotenv
 import time
 from datetime import datetime
 
-load_dotenv()
+load_dotenv("keys.env")
 # ── CONFIG ──────────────────────────────────────────────────────
-NVIDIA_API_KEY = os.getenv"NVIDIA_API_KEY"  
+NVIDIA_API_KEY = os.getenv("NVIDIA_API_KEY")
 
 MODEL      = "mistralai/mistral-large-3-675b-instruct-2512"
 INPUT_FILE = "good_matches.csv"
@@ -246,18 +246,18 @@ def main():
     if "applied" in df.columns:
         df = df[df["applied"] != "Yes"]
 
-    # ── Only process HIGH priority jobs (score >= 7) ──
+    # ── Only process Medium & High priority jobs (score >= 7) ──
     MIN_SCORE = 7
     all_count = len(df)
     df = df[df["match_score"] >= MIN_SCORE]
     df = df.sort_values("match_score", ascending=False)
 
     print(f"\n📂 Total jobs in file  : {all_count}")
-    print(f"🔥 High priority (7+)  : {len(df)}  ← writing cover letters for THESE only")
+    print(f"🔥 Processing (4+)     : {len(df)}  ← writing cover letters for THESE only")
     print(f"⏱️  Est. time           : ~{len(df)*3} seconds")
 
     if len(df) == 0:
-        print("\n❌ No high-priority jobs found (score >= 7). Run scraper again for fresh jobs!")
+        print("\n❌ No jobs found (score >= 4). Run scraper again for fresh jobs!")
         return
 
     # Process only high-priority jobs
