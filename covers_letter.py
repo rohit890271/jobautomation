@@ -246,15 +246,21 @@ def main():
     if "applied" in df.columns:
         df = df[df["applied"] != "Yes"]
 
-    # Sort best first
+    # ── Only process HIGH priority jobs (score >= 7) ──
+    MIN_SCORE = 7
+    all_count = len(df)
+    df = df[df["match_score"] >= MIN_SCORE]
     df = df.sort_values("match_score", ascending=False)
 
-    print(f"\n📂 {len(df)} jobs loaded")
-    print(f"🔥 High priority (6+) : {len(df[df['match_score'] >= 6])}")
-    print(f"✅ Medium (4-5)       : {len(df[(df['match_score'] >= 4) & (df['match_score'] < 6)])}")
-    print(f"⏱️  Est. time          : ~{len(df)*3} seconds")
+    print(f"\n📂 Total jobs in file  : {all_count}")
+    print(f"🔥 High priority (7+)  : {len(df)}  ← writing cover letters for THESE only")
+    print(f"⏱️  Est. time           : ~{len(df)*3} seconds")
 
-    # Process
+    if len(df) == 0:
+        print("\n❌ No high-priority jobs found (score >= 7). Run scraper again for fresh jobs!")
+        return
+
+    # Process only high-priority jobs
     results = process_jobs(df)
 
     # Save
