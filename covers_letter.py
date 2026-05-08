@@ -246,8 +246,8 @@ def main():
     if "applied" in df.columns:
         df = df[df["applied"] != "Yes"]
 
-    # ── Only process Medium & High priority jobs (score >= 7) ──
-    MIN_SCORE = 7
+    # ── Only process Medium & High priority jobs (score >= 4) ──
+    MIN_SCORE = 6
     all_count = len(df)
     df = df[df["match_score"] >= MIN_SCORE]
     df = df.sort_values("match_score", ascending=False)
